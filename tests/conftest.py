@@ -39,7 +39,3 @@ def task_factory(db):
     def _make(**kwargs):
         return baker.make(Task, **kwargs)
     return _make
-
-@pytest.fixture
-def recent_time():
-    return timezone.now() - timedelta(minutes=1)

@@ -1,7 +1,7 @@
 import pytest
-from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+import urllib.parse
 
 # Helpers para construir URLs
 def tasks_list_url():
@@ -98,8 +98,18 @@ def test_search_and_filters(auth_client, user, task_factory):
     titles = [t["title"] for t in (r.data["results"] if "results" in r.data else r.data)]
     assert "Otra" in titles and "Nueva" not in titles
 
+
     # filtro por fecha (solo recientes)
-    iso_from = (timezone.now() - timedelta(days=1)).replace(microsecond=0).isoformat() + "Z"
-    r = auth_client.get(tasks_list_url() + f"?created_from={iso_from}")
+    iso_from = (timezone.now() - timedelta(days=1)).replace(microsecond=0).isoformat()
+    path = tasks_list_url() + f"?created_from={urllib.parse.quote(iso_from)}"  # para que no rompa si hay + o espacios
+    r = auth_client.get(path)
     titles = [t["title"] for t in (r.data["results"] if "results" in r.data else r.data)]
-    assert "Nueva" in titles and "Vieja tarea" not in titles
+    assert "Nueva" in titles
+    assert "Vieja tarea" not in titles
+    # filtro por fecha (solo no recientes)
+    iso_from = (timezone.now() - timedelta(days=1)).replace(microsecond=0).isoformat()
+    path = tasks_list_url() + f"?created_to={urllib.parse.quote(iso_from)}"  # para que no rompa si hay + o espacios
+    r = auth_client.get(path)
+    titles = [t["title"] for t in (r.data["results"] if "results" in r.data else r.data)]
+    assert "Nueva" not in titles
+    assert "Vieja tarea" in titles
