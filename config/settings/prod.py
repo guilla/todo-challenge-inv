@@ -1,0 +1,7 @@
+from .base import *  # noqa: F403
+DEBUG = False
+SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7  # 1 week
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+

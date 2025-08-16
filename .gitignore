@@ -1,0 +1,11 @@
+*.pyc
+*.sqlite3
+todo/migrations/*
+.vscode/
+.idea/
+__pycache__/
+*.log
+*.env
+*.DS_Store
+*.coverage
+.coverage.*
