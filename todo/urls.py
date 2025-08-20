@@ -3,4 +3,5 @@ from .views import TaskViewSet
 
 router = DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename='todo')
+
 urlpatterns = router.urls

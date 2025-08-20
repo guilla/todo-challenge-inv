@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from pythonjsonlogger import jsonlogger
 import environ
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "config.middleware.request_id_middleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -156,3 +159,47 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "request_id": {
+            "()": "config.logging_filters.RequestIdFilter"
+        }
+    },
+    "formatters": {
+        "json": {
+            "()" : "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s",
+        },
+        # útil para dev local:
+        "console": {
+            "format": "[%(asctime)s] %(levelname)s %(name)s [rid=%(request_id)s] %(message)s"
+        },
+    },
+    "handlers": {
+        "console_json": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["request_id"],
+        },
+        "console_pretty": {
+            "class": "logging.StreamHandler",
+            "formatter": "console",
+            "filters": ["request_id"],
+        },
+    },
+    "loggers": {
+        # logs de Django
+        "django": {"handlers": ["console_pretty"], "level": LOG_LEVEL, "propagate": False},
+        "django.request": {"handlers": ["console_pretty"], "level": LOG_LEVEL, "propagate": False},
+        # app
+        "todo": {"handlers": ["console_json"], "level": LOG_LEVEL, "propagate": False},
+        "rest_framework": {"handlers": ["console_pretty"], "level": LOG_LEVEL, "propagate": False},
+        # root
+        "": {"handlers": ["console_pretty"], "level": LOG_LEVEL},
+    },
+}
